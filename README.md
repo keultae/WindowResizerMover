@@ -4,6 +4,8 @@
 
 # Mac
 ## Hammerspoon 사용
+- 설치
+    - 사이트
 - 스크린샷
 ![스크린샷](./imgs/Mac_Window_Resizer_Mover.png)
 - - 단축키
@@ -14,6 +16,9 @@
 
 # Windows 11
 ## AutoHotkey 사용
+- 설치
+    - [AutoHotkey 사이트](https://www.autohotkey.com/)에서 v2.x 버전 다운로드
+    - window/AutoHotkey_2.0.19_setup.exe
 - 스크린샷
 ![스크린샷](./imgs/Windows_Window_Resizer_Mover.png)
 - 단축키
