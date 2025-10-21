@@ -21,6 +21,15 @@
 - 설치
     - [AutoHotkey 사이트](https://www.autohotkey.com/)에서 v2.x 버전 다운로드
     - [AutoHotkey_2.0.19_setup.exe](./window/AutoHotkey_2.0.19_setup.exe)
+- 실행
+    - window/WindowResizerMover.ahk 파일 더블 클릭
+- 부팅시 자동 실행
+    - Win + R 눌러 실행창 열기
+        - shell:startup 입력하고 엔터
+        - Startup 폴더가 열림
+    - Startup 폴더에
+        - 직업 WindowResizerMover.ahk 파일 복사
+        - 또는 WindowResizerMover.ahk의 바로가기(Shortcut) 넣기
 - 스크린샷
 ![스크린샷](./imgs/Windows_Window_Resizer_Mover.png)
 - 단축키
