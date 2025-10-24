@@ -395,3 +395,100 @@ end
 
 -- 단축키: ⌃⌥⌘ + B 로 열기/다시 열기
 hs.hotkey.bind({"ctrl","alt","cmd"}, "B", showPicker)
+
+-- CMD + 좌클릭으로 showPicker 실행 (GC 방지: 전역 변수에 보관)
+if ctrlLeftClickTap and ctrlLeftClickTap:stop() then end  -- 중복 생성 방지용 안전장치
+
+ctrlLeftClickTap = hs.eventtap.new({hs.eventtap.event.types.leftMouseDown}, function(event)
+  local flags = event:getFlags()
+
+  -- Ctrl만 눌린 상태(원하면 아래 조건을 flags.ctrl로만 단순화 가능)
+  if flags.ctrl and flags.shift and  not (flags.alt or flags.cmd or flags.fn) then
+    -- 이미 패널이 떠 있으면 또 안 띄우도록 차단
+    if sizePicker then return true end
+    showPicker()
+    return true   -- 클릭 이벤트 소비(원하지 않으면 false로 바꿔도 됨)
+  end
+  return false
+end)
+
+ctrlLeftClickTap:start()
+
+------------------------------------------------------------
+-- Ctrl + Shift + ← / → : 선택 창을 이전/다음 디스플레이로 이동
+------------------------------------------------------------
+
+-- 현재 스크린 배열을 x좌표 기준으로 정렬(좌→우)해 래핑 이동 지원
+local function getOrderedScreens()
+  local screens = hs.screen.allScreens()
+  table.sort(screens, function(a, b)
+    return a:fullFrame().x < b:fullFrame().x
+  end)
+  return screens
+end
+
+-- 현재 스크린의 인덱스 찾기
+local function indexOfScreen(screens, target)
+  for i, s in ipairs(screens) do
+    if s:id() == target:id() then return i end
+  end
+  return 1
+end
+
+-- 창 프레임을 비율로 보존하며 다른 스크린으로 이동
+local function moveWindowToScreen(win, targetScreen)
+  if not (win and win:id() and targetScreen) then return end
+
+  local wf  = win:frame()
+  local sf  = win:screen():frame()
+  local tsf = targetScreen:frame()
+
+  -- 원 스크린 대비 상대 비율
+  local rx = (wf.x - sf.x) / sf.w
+  local ry = (wf.y - sf.y) / sf.h
+  local rw = wf.w / sf.w
+  local rh = wf.h / sf.h
+
+  -- 대상 스크린에 같은 비율로 배치
+  local newFrame = {
+    x = tsf.x + rx * tsf.w,
+    y = tsf.y + ry * tsf.h,
+    w = rw * tsf.w,
+    h = rh * tsf.h,
+  }
+
+  -- duration=0 으로 자연스런 즉시 이동
+  win:move(newFrame, targetScreen, 0)
+end
+
+local function moveFocusedWindow(direction) -- "prev" or "next"
+  local win = hs.window.frontmostWindow()
+  if not (win and win:id()) then
+    hs.alert.show("이동할 창이 없습니다.")
+    return
+  end
+
+  local screens = getOrderedScreens()
+  local curIdx  = indexOfScreen(screens, win:screen())
+  local n       = #screens
+  if n <= 1 then return end
+
+  local newIdx
+  if direction == "prev" then
+    newIdx = ((curIdx - 2) % n) + 1   -- 래핑하여 이전
+  else
+    newIdx = (curIdx % n) + 1         -- 래핑하여 다음
+  end
+
+  moveWindowToScreen(win, screens[newIdx])
+end
+
+-- ⌃ + ← : 이전 디스플레이
+hs.hotkey.bind({"ctrl", "shift"}, "left", function()
+  moveFocusedWindow("prev")
+end)
+
+-- ⌃ + → : 다음 디스플레이
+hs.hotkey.bind({"ctrl", "shift"}, "right", function()
+  moveFocusedWindow("next")
+end)
